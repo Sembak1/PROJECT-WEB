@@ -63,8 +63,8 @@ include __DIR__ . '/header.php';
 <section style="background:#f9fafb;padding:3rem 1rem;text-align:center;margin-top:3rem;">
   <h2 style="margin-bottom:1rem;">🌸 Tentang Glowify</h2>
   <p style="max-width:640px;margin:0 auto;color:#4b5563;">
-    Glowify Beauty adalah toko kecantikan online terpercaya yang menyediakan berbagai produk skincare dan makeup berkualitas tinggi.
-    Kami berkomitmen untuk membuat setiap pelanggan tampil percaya diri dan bersinar setiap hari!
+      hahahahahahha Glowify Beauty adalah toko kecantikan online terpercaya yang menyediakan berbagai produk skincare dan makeup berkualitas tinggi.
+    Kami berkomitmen untuk membuat setiap pelanggan  tampil percaya diri dan bersinar setiap hari!
   </p>
 </section>
 
