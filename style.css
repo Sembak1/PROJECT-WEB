@@ -136,3 +136,42 @@ input[type="number"]:focus, select:focus{border-color:var(--primary);box-shadow:
 .btn.alert{background:#ef4444;color:#fff;padding:.55rem .9rem;border-radius:12px;font-weight:700}
 
 .btn.alert:hover{background:#dc2626}
+/* ====== Perbaikan Kontras Mode Gelap ====== */
+:root.dark .notice {
+  background: #1f2937;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+:root.dark input,
+:root.dark textarea,
+:root.dark select {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+:root.dark .btn.secondary {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+:root.dark .table {
+  background: #111827;
+  color: #f3f4f6;
+}
+
+:root.dark .table th,
+:root.dark .table td {
+  border-color: #374151;
+}
+
+:root.dark .footer {
+  color: #9ca3af;
+  border-top-color: #1f2937;
+}
+
+:root.dark a {
+  color: #f9a8d4;
+}
