@@ -1,6 +1,11 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (session_status() === PHP_SESSION_NONE) { 
+    session_start(); 
+}
+
 session_unset();
 session_destroy();
-header('Location: /Project/login.php');
+
+// Arahkan otomatis ke login.php di folder yang sama
+header('Location: login.php');
 exit;

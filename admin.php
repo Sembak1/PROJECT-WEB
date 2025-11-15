@@ -51,9 +51,12 @@ $pendingOrders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'pendin
             <li><a href="orders.php" style="color:#ec4899;">Lihat Pesanan</a></li>
             <li><a href="users.php" style="color:#ec4899;">Manajemen Pengguna</a></li>
             <li><a href="logout.php" style="color:#ec4899;">Logout</a></li>
+            <li><a href="add_product.php" style="color:#ec4899;">Tambah Produk Baru</a></li>
         </ul>
 
     </div>
 </div>
+
+
 
 <?php include __DIR__ . '/footer.php'; ?>

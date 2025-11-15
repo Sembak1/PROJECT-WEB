@@ -27,7 +27,6 @@ try {
 
   <!-- CSS & JS -->
   <link rel="stylesheet" href="style.css">
-  <script defer src="app.js"></script>
 </head>
 
 <body>
@@ -59,8 +58,6 @@ try {
         <a href="login.php">Masuk</a>
         <a href="register.php" class="btn">Daftar</a>
       <?php endif; ?>
-
-      <button id="theme-toggle" class="theme-toggle" type="button" title="Ganti Tema">Mode</button>
     </nav>
   </div>
 </header>
