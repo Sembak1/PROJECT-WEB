@@ -1,0 +1,186 @@
+/* ============================================================
+   GLOWIFY — FINAL UI FRAMEWORK
+   ============================================================ */
+
+/* ============ Root & Reset ============ */
+:root{
+  --bg:#ffffff;
+  --surface:#ffffff;
+  --text:#0f172a;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --primary:#ec4899;
+  --primary-600:#db2777;
+  --ring:#fbcfe8;
+  --shadow:0 6px 18px rgba(17,24,39,.08);
+  --radius:14px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:15px/1.6 Inter,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img{display:block;max-width:100%}
+a{text-decoration:none;color:inherit}
+button,input,select,textarea{font:inherit}
+
+/* ============ Container & Layout ============ */
+.container{max-width:1140px;margin:0 auto;padding:0 1rem}
+.section{padding:2rem 0}
+
+/* ============ Navbar ============ */
+.navbar{
+  position:sticky;top:0;z-index:50;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:saturate(180%) blur(8px);
+}
+.navbar .wrap{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:.85rem 0;
+}
+.brand{
+  font-size:1.3rem;font-weight:800;color:var(--primary);
+  display:flex;align-items:center;gap:.6rem;
+}
+.brand::before{
+  content:"";width:11px;height:11px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),#f59e0b);
+  box-shadow:0 0 0 4px #fee2e2aa;
+}
+.navlinks{
+  display:flex;gap:1rem;align-items:center;
+}
+.navlinks a{
+  padding:.45rem .8rem;
+  border-radius:10px;
+  color:#374151;
+}
+.navlinks a:hover{background:#f8fafc}
+
+/* ============ Buttons ============ */
+.btn{
+  padding:.65rem 1rem;
+  border:1px solid var(--primary);
+  border-radius:14px;
+  background:var(--primary);
+  color:white;
+  font-weight:600;
+  transition:.15s;
+  box-shadow:var(--shadow);
+}
+.btn:hover{transform:translateY(-2px);background:var(--primary-600)}
+.btn:active{transform:none}
+
+.btn.secondary{
+  background:white;color:var(--primary);
+  border-color:var(--primary);
+  box-shadow:none;
+}
+.btn.small{padding:.45rem .8rem;font-size:.9rem}
+
+/* ============ Forms ============ */
+input,select,textarea{
+  width:100%;padding:.65rem .75rem;
+  border-radius:12px;
+  border:1px solid var(--border);
+  outline:none;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 4px var(--ring);
+}
+
+/* ============ Hero Banner ============ */
+.hero-banner{
+  text-align:center;
+  padding:3rem 1rem;
+  background:linear-gradient(135deg,#fdf2f8,#ffffff);
+}
+.hero-banner h1{
+  font-size:2rem;font-weight:800;margin-bottom:.6rem;
+}
+.hero-banner p{
+  max-width:620px;margin:0 auto 1rem;
+  color:var(--muted);
+}
+
+/* ============ Produk Grid ============ */
+.produk-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:1.4rem;
+}
+
+.produk-card{
+  background:var(--surface);
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  transition:.15s;
+}
+.produk-card:hover{transform:translateY(-4px)}
+
+.produk-card img{
+  width:100%;
+  aspect-ratio:1 / 1;
+  object-fit:cover;
+}
+
+.produk-info{
+  padding:1rem;
+  display:flex;flex-direction:column;gap:.4rem;
+}
+.produk-nama{font-size:1rem;font-weight:700}
+.produk-harga{font-weight:800;color:#111}
+
+/* ============ Tables (Admin) ============ */
+.table{
+  width:100%;border-collapse:collapse;
+  background:var(--surface);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.table th,.table td{
+  padding:.85rem;
+  border-bottom:1px solid var(--border);
+}
+.table tr:last-child td{border-bottom:none}
+
+/* ============ Notice Message ============ */
+.alert{padding:.9rem 1rem;border-radius:12px;margin-bottom:1rem}
+.alert.error{
+  background:#fee2e2;color:#991b1b;
+  border:1px solid #fecaca;
+}
+.alert.success{
+  background:#dcfce7;color:#166534;
+  border:1px solid #bbf7d0;
+}
+
+/* ============ Footer ============ */
+.footer{
+  text-align:center;
+  padding:1.5rem 0;margin-top:2rem;
+  color:var(--muted);
+  border-top:1px solid var(--border);
+}
+
+/* ============ Animations ============ */
+@keyframes pop{0%{transform:scale(.96);opacity:.6}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .18s ease}
+
+/* ============ Responsive ============ */
+@media(max-width:880px){
+  .navbar .wrap{flex-direction:column;gap:.6rem}
+}
+

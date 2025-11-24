@@ -1,9 +1,10 @@
 <?php
-// db.php
+// inti/koneksi_database.php
+
 $DB_HOST = 'localhost';
 $DB_NAME = 'ecommerce_kecantikan';
 $DB_USER = 'root';
-$DB_PASS = 'FAIZ12345'; // ganti di production
+$DB_PASS = 'FAIZ12345'; // sesuaikan
 
 try {
     $pdo = new PDO(
@@ -16,6 +17,5 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    // Hindari bocor detail koneksi; cukup pesan umum untuk user
     die("Koneksi database gagal.");
 }
