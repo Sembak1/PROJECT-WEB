@@ -11,12 +11,15 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 $error = "";
 $success = "";
 
-/* UPDATE PRODUK */
+/* ==========================================================
+   UPDATE PRODUK
+========================================================== */
 if (isset($_POST['update_produk'])) {
-    $id    = (int)($_POST['product_id'] ?? 0);
-    $nama  = trim($_POST['nama'] ?? '');
-    $harga = (float)($_POST['harga'] ?? 0);
-    $desk  = trim($_POST['deskripsi'] ?? '');
+    $id      = (int)($_POST['product_id'] ?? 0);
+    $nama    = trim($_POST['nama'] ?? '');
+    $harga   = (float)($_POST['harga'] ?? 0);
+    $desk    = trim($_POST['deskripsi'] ?? '');
+    $stock   = (int)($_POST['stock'] ?? 0);
 
     if ($id <= 0 || $nama === '' || $harga <= 0) {
         $error = "Data produk tidak valid.";
@@ -26,10 +29,11 @@ if (isset($_POST['update_produk'])) {
         try {
             $stmt = $pdo->prepare("
                 UPDATE products
-                SET name = ?, slug = ?, base_price = ?, description = ?
+                SET name = ?, slug = ?, base_price = ?, description = ?, stock = ?
                 WHERE id = ?
             ");
-            $stmt->execute([$nama, $slug, $harga, $desk, $id]);
+            $stmt->execute([$nama, $slug, $harga, $desk, $stock, $id]);
+
             $success = "Produk berhasil diperbarui!";
         } catch (Throwable $e) {
             $error = "Gagal memperbarui produk.";
@@ -37,12 +41,14 @@ if (isset($_POST['update_produk'])) {
     }
 }
 
-/* HAPUS PRODUK */
+/* ==========================================================
+   HAPUS PRODUK
+========================================================== */
 if (isset($_POST['hapus_produk'])) {
     $id = (int)($_POST['product_id'] ?? 0);
 
     if ($id <= 0) {
-        $error = "Produk tidak valid untuk dihapus.";
+        $error = "Produk tidak valid.";
     } else {
         try {
             $q = $pdo->prepare("SELECT url FROM product_images WHERE product_id = ?");
@@ -54,7 +60,7 @@ if (isset($_POST['hapus_produk'])) {
                     $rel  = ltrim($f['url'], '/');
                     $path = __DIR__ . '/../' . $rel;
 
-                    if (file_exists($path) && is_file($path)) {
+                    if (file_exists($path)) {
                         @unlink($path);
                     }
                 }
@@ -70,10 +76,12 @@ if (isset($_POST['hapus_produk'])) {
     }
 }
 
-/* AMBIL DATA PRODUK */
+/* ==========================================================
+   AMBIL DATA PRODUK + STOK
+========================================================== */
 $stmt = $pdo->query("
     SELECT 
-        p.id, p.name, p.base_price, p.description,
+        p.id, p.name, p.base_price, p.description, p.stock,
         COALESCE(img.url, 'aset/uploads/default.png') AS image
     FROM products p
     LEFT JOIN product_images img
@@ -96,95 +104,99 @@ include __DIR__ . '/../header.php';
     <div class="alert success"><?= htmlspecialchars($success); ?></div>
 <?php endif; ?>
 
+
 <table class="tabel">
-  <tbody>
+<tbody>
+
 <?php foreach ($products as $p): ?>
-    <tr style="vertical-align:middle;">
+<tr style="vertical-align:middle;">
 
-        <!-- FOTO PRODUK BESAR -->
-        <td style="width:420px; padding:20px;">
-            <img src="/glowify/<?= htmlspecialchars($p['image']); ?>"
-                 style="
-                    width: 450px;
-                    height: 450px; 
-                    object-fit:cover;
-                    border-radius:14px;
-                
-                 ">
-        </td>
+    <!-- FOTO PRODUK -->
+    <td style="width:420px; padding:20px;">
+        <img src="/glowify/<?= htmlspecialchars($p['image']); ?>"
+            style="
+                width: 450px;
+                height: 450px;
+                object-fit: cover;
+                border-radius: 14px;
+            ">
+    </td>
 
-        <!-- FORM EDIT DENGAN LABEL ATAS -->
-        <td style="padding:20px; width:500px; vertical-align:middle;">
+    <!-- FORM EDIT PRODUK -->
+    <td style="padding:20px; width:500px; vertical-align:middle;">
 
-            <form method="post" style="margin-bottom:25px;">
+        <form method="post" style="margin-bottom:25px;">
 
-                <input type="hidden" name="product_id" value="<?= (int)$p['id']; ?>">
+            <input type="hidden" name="product_id" value="<?= (int)$p['id']; ?>">
 
-                <!-- LABEL NAMA PRODUK -->
-                <label style="font-size:16px; font-weight:700; margin-bottom:6px; display:block;">
-                    Nama Produk
-                </label>
-                <input type="text" name="nama"
-                       value="<?= htmlspecialchars($p['name']); ?>"
-                       required
-                       style="
-                          width:100%;
-                          padding:12px;
-                          font-size:16px;
-                          margin-bottom:16px;
-                          border-radius:8px;
-                       ">
+            <!-- NAMA -->
+            <label style="font-size:16px; font-weight:700; margin-bottom:6px; display:block;">
+                Nama Produk
+            </label>
+            <input type="text" name="nama"
+                value="<?= htmlspecialchars($p['name']); ?>"
+                required
+                style="
+                    width:100%; padding:12px; font-size:16px;
+                    margin-bottom:16px; border-radius:8px;
+                ">
 
-                <!-- LABEL HARGA PRODUK -->
-                <label style="font-size:16px; font-weight:700; margin-bottom:6px; display:block;">
-                    Harga Produk
-                </label>
-                <input type="number" name="harga"
-                       value="<?= htmlspecialchars($p['base_price']); ?>"
-                       step="100" required
-                       style="
-                          width:100%;
-                          padding:12px;
-                          font-size:16px;
-                          margin-bottom:16px;
-                          border-radius:8px;
-                       ">
+            <!-- HARGA -->
+            <label style="font-size:16px; font-weight:700; margin-bottom:6px; display:block;">
+                Harga Produk
+            </label>
+            <input type="number" name="harga"
+                value="<?= htmlspecialchars($p['base_price']); ?>"
+                step="100" required
+                style="
+                    width:100%; padding:12px; font-size:16px;
+                    margin-bottom:16px; border-radius:8px;
+                ">
 
-                <!-- LABEL DESKRIPSI PRODUK -->
-                <label style="font-size:16px; font-weight:700; margin-bottom:6px; display:block;">
-                    Deskripsi Produk
-                </label>
-                <textarea name="deskripsi" rows="4"
-                          style="
-                             width:100%;
-                             padding:12px;
-                             font-size:16px;
-                             margin-bottom:20px;
-                             border-radius:8px;
-                          "><?= htmlspecialchars($p['description']); ?></textarea>
+            <!-- STOK -->
+            <label style="font-size:16px; font-weight:700; margin-bottom:6px; display:block;">
+                Stok Produk
+            </label>
+            <input type="number" name="stock"
+                value="<?= htmlspecialchars($p['stock']); ?>"
+                min="0"
+                style="
+                    width:100%; padding:12px; font-size:16px;
+                    margin-bottom:16px; border-radius:8px;
+                ">
 
-                <button class="btn" name="update_produk" value="1"
-                        style="width:100%; padding:12px; font-size:16px;">
-                    Update
-                </button>
+            <!-- DESKRIPSI -->
+            <label style="font-size:16px; font-weight:700; margin-bottom:6px; display:block;">
+                Deskripsi Produk
+            </label>
+            <textarea name="deskripsi" rows="4"
+                style="
+                    width:100%; padding:12px; font-size:16px;
+                    margin-bottom:20px; border-radius:8px;
+                "><?= htmlspecialchars($p['description']); ?></textarea>
 
-            </form>
+            <button class="btn" name="update_produk" value="1"
+                style="width:100%; padding:12px; font-size:16px;">
+                Update
+            </button>
 
-            <!-- BUTTON HAPUS -->
-            <form method="post" onsubmit="return confirm('Hapus produk ini?');">
-                <input type="hidden" name="product_id" value="<?= (int)$p['id']; ?>">
-                <button class="btn secondary" name="hapus_produk" value="1"
-                        style="width:100%; padding:12px; font-size:16px;">
-                    Hapus
-                </button>
-            </form>
+        </form>
 
-        </td>
+        <!-- HAPUS PRODUK -->
+        <form method="post" onsubmit="return confirm('Hapus produk ini?');">
+            <input type="hidden" name="product_id" value="<?= (int)$p['id']; ?>">
+            <button class="btn secondary" name="hapus_produk" value="1"
+                style="width:100%; padding:12px; font-size:16px;">
+                Hapus
+            </button>
+        </form>
 
-    </tr>
+    </td>
+
+</tr>
 <?php endforeach; ?>
-</tbody>
 
+</tbody>
 </table>
 
 

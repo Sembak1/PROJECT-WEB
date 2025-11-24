@@ -133,7 +133,7 @@ h1,h2,h3{margin:0 0 .5rem;color:var(--text);}
     <ul class="admin-menu">
         <li><a href="kelola_produk.php">Kelola Produk</a></li>
         <li><a href="tambah_produk.php">Tambah Produk</a></li>
-        <li><a href="kelola_pesanan.php">Kelola Pesanan</a></li>
+        <li><a href="kelola_pesanan.php">Lihat Pesanan</a></li>
         <li><a href="buat_admin.php">Tambah Admin</a></li>
     </ul>
 

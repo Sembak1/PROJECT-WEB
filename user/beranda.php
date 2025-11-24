@@ -4,9 +4,6 @@ require_once __DIR__ . '/../inti/koneksi_database.php';
 require_once __DIR__ . '/../inti/autentikasi.php';
 require_once __DIR__ . '/../inti/fungsi.php';
 
-// Jika ingin halaman home hanya untuk user login, aktifkan:
-// cekLogin();
-
 // ===================== Ambil Produk Terbaru =====================
 $stmt = $pdo->query("
     SELECT 
@@ -32,49 +29,125 @@ include __DIR__ . '/../header.php';
 ?>
 
 <!-- ===================== HERO SECTION ===================== -->
-<section class="hero-banner">
-    <h1>Selamat Datang di Glowify Beauty</h1>
-    <p>Temukan koleksi skincare & makeup terbaik untuk kecantikan alami kamu.</p>
+<section style="
+    padding:80px 20px;
+    text-align:center;
+    background:linear-gradient(135deg,#fff0f7,#ffffff);
+    border-bottom:1px solid #fce7f3;
+">
+    <h1 style="
+        font-size:2.6rem;
+        font-weight:800;
+        color:#db2777;
+        margin-bottom:10px;
+    ">
+        Selamat Datang di Glowify Beauty ✨
+    </h1>
 
-    <a href="/glowify/user/daftar_produk.php" class="btn primary">
+    <p style="
+        font-size:1.1rem;
+        max-width:640px;
+        margin:0 auto 25px;
+        color:#6b7280;
+    ">
+        Temukan koleksi skincare & makeup terbaik untuk kecantikan alami kamu.
+    </p>
+
+    <a href='/glowify/user/daftar_produk.php' style="
+        display:inline-block;
+        padding:14px 32px;
+        background:#ec4899;
+        color:white;
+        font-weight:600;
+        border-radius:16px;
+        box-shadow:0 6px 18px rgba(236,72,153,0.35);
+        transition:.2s;
+    " onmouseover="this.style.transform='translateY(-3px)'"
+      onmouseout="this.style.transform='translateY(0)'">
         Belanja Sekarang
     </a>
 </section>
 
 <!-- ===================== PRODUK TERBARU ===================== -->
-<div class="container section">
-    <h2 class="section-title">Produk Terbaru</h2>
+<div style="max-width:1100px;margin:50px auto;padding:0 16px;">
+    
+    <h2 style="
+        font-size:1.8rem;
+        font-weight:700;
+        margin-bottom:22px;
+    ">
+        Produk Terbaru
+    </h2>
 
-    <div class="produk-grid">
+    <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+        gap:22px;
+    ">
 
         <?php if (!empty($products)): ?>
             <?php foreach ($products as $p): ?>
-                
+
                 <?php
                     $image = $p['image_url'] 
                         ? "/glowify/" . $p['image_url']
                         : "/glowify/aset/gambar/default.png";
                 ?>
 
-                <div class="produk-card">
+                <div style="
+                    background:white;
+                    border-radius:18px;
+                    padding:14px;
+                    border:1px solid #f3f4f6;
+                    box-shadow:0 4px 14px rgba(17,24,39,0.08);
+                    transition:.2s;
+                " 
+                onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 8px 20px rgba(17,24,39,0.12)'"
+                onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 14px rgba(17,24,39,0.08)'">
 
                     <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>">
                         <img src="<?= htmlspecialchars($image); ?>" 
-                            alt="<?= htmlspecialchars($p['name']); ?>" 
-                            class="produk-img">
+                            alt="<?= htmlspecialchars($p['name']); ?>"
+                            style="
+                                width:100%;
+                                height:230px;
+                                object-fit:cover;
+                                border-radius:14px;
+                                margin-bottom:12px;
+                            ">
                     </a>
 
-                    <div class="produk-info">
-                        <strong class="produk-nama">
+                    <div>
+                        <div style="
+                            font-weight:700;
+                            font-size:1rem;
+                            margin-bottom:6px;
+                            color:#111;
+                        ">
                             <?= htmlspecialchars($p['name']); ?>
-                        </strong>
+                        </div>
 
-                        <div class="produk-harga">
+                        <div style="
+                            font-weight:800;
+                            color:#db2777;
+                            margin-bottom:14px;
+                        ">
                             <?= rupiah($p['base_price']); ?>
                         </div>
 
                         <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>" 
-                           class="btn small">
+                           style="
+                               display:block;
+                               text-align:center;
+                               padding:10px;
+                               background:#ec4899;
+                               color:white;
+                               border-radius:12px;
+                               font-weight:600;
+                               transition:.2s;
+                           "
+                           onmouseover="this.style.opacity='0.85'"
+                           onmouseout="this.style.opacity='1'">
                             Lihat Detail
                         </a>
                     </div>
@@ -83,17 +156,33 @@ include __DIR__ . '/../header.php';
 
             <?php endforeach; ?>
         <?php else: ?>
-            <p class="no-data">Belum ada produk tersedia.</p>
+            <p style="color:#6b7280;font-style:italic;">Belum ada produk tersedia.</p>
         <?php endif; ?>
 
     </div>
 </div>
 
 <!-- ===================== TENTANG GLOWIFY ===================== -->
-<section class="section about">
-    <h2>Tentang Glowify</h2>
+<section style="
+    padding:60px 20px;
+    text-align:center;
+    background:#faf5ff;
+    margin-top:40px;
+">
+    <h2 style="
+        font-size:1.9rem;
+        font-weight:700;
+        margin-bottom:12px;
+        color:#7e22ce;
+    ">Tentang Glowify</h2>
 
-    <p class="about-text">
+    <p style="
+        max-width:720px;
+        margin:0 auto;
+        font-size:1.05rem;
+        line-height:1.7;
+        color:#4b5563;
+    ">
         Glowify Beauty adalah toko kecantikan online terpercaya yang menyediakan produk skincare dan makeup berkualitas.
         Kami berkomitmen menghadirkan kecantikan alami untuk setiap wanita, agar selalu tampil percaya diri setiap hari!
     </p>

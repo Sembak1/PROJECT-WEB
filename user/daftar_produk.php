@@ -54,92 +54,138 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include __DIR__ . '/../header.php';
 ?>
 
-<!-- ===================== CSS KHUSUS KATALOG (TIDAK SENTUH HEADER) ===================== -->
 <style>
+
+/* ======================== GLOWIFY PREMIUM PINK ======================== */
 .page-container{
     max-width:1100px;
-    margin:20px auto;
+    margin:40px auto;
     padding:0 16px;
+    font-family:'Inter',sans-serif;
 }
 
-/* --- SEARCH BAR --- */
+/* -------------------- SEARCH BAR -------------------- */
 .header-search{
     display:flex;
-    gap:.5rem;
-    margin:1rem 0 1.5rem;
-}
-.header-search input{
-    padding:.55rem .75rem;
-    border-radius:10px;
-    border:1px solid #ddd;
-    width:260px;
+    gap:.7rem;
+    margin:1rem 0 2rem;
 }
 
-/* --- GRID PRODUK --- */
+.header-search input{
+    padding:.75rem 1rem;
+    border-radius:14px;
+    border:1px solid #f9a8d4;
+    width:300px;
+    background:white;
+    font-size:1rem;
+    transition:.2s;
+    box-shadow:0 5px 14px rgba(236,72,153,.15);
+}
+
+.header-search input:focus{
+    border-color:#ec4899;
+    box-shadow:0 0 0 4px #fce7f3;
+}
+
+/* Tombol pink */
+.btn.small{
+    padding:.6rem 1.2rem;
+    background:#ec4899;
+    border:none;
+    font-size:.9rem;
+    border-radius:12px;
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 6px 14px rgba(236,72,153,.32);
+    transition:.2s;
+}
+.btn.small:hover{
+    transform:translateY(-2px);
+    opacity:.9;
+}
+
+/* -------------------- GRID -------------------- */
 .grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:1.25rem;
+    gap:1.5rem;
 }
 
-/* --- CARD PRODUK --- */
+/* -------------------- CARD PRODUK -------------------- */
 .card{
     background:white;
-    border-radius:12px;
-    border:1px solid #e5e7eb;
-    box-shadow:0 2px 8px rgba(0,0,0,.05);
+    border-radius:18px;
+    border:1px solid #fbcfe8;
+    box-shadow:0 8px 22px rgba(236,72,153,.10);
     overflow:hidden;
-    transition:.15s ease;
+    transition:.25s ease;
+    padding-bottom:10px;
 }
-.card:hover{ transform:translateY(-3px); }
 
-/* --- FOTO KOTAK PERFECT --- */
+.card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 12px 28px rgba(236,72,153,.18);
+}
+
+/* -------------------- FOTO KECIL (200px) -------------------- */
 .card img{
     width:100%;
-    aspect-ratio:1 / 1;   /* INI YANG MEMBUAT FOTO KOTAK */
-    object-fit:cover;     /* Biar gak gepeng */
-    object-position:center;
+    height:200px;     /* FOTO DIPERKECIL */
+    object-fit:cover;
+    border-radius:18px 18px 0 0;
 }
 
-/* --- CONTENT TEXT --- */
+/* -------------------- CONTENT -------------------- */
 .card .content{
-    padding:10px 12px;
+    padding:14px 16px;
 }
+
 .card strong{
+    font-size:1.05rem;
+    font-weight:700;
+    color:#111;
+    margin-bottom:6px;
     display:block;
-    font-size:1rem;
-    margin-bottom:5px;
 }
+
+/* Harga pink */
 .price{
-    font-weight:bold;
-    margin-bottom:8px;
+    font-weight:800;
+    font-size:1.05rem;
+    color:#db2777;
+    margin-bottom:14px;
 }
 
-/* --- TOMBOL --- */
-.btn.small{
-    padding:.45rem .7rem;
-    font-size:.85rem;
-    border-radius:8px;
-    background:#ec4899;
-    color:white;
-    display:inline-block;
+/* Tombol detail */
+.card .btn.small{
+    width:100%;
+    display:block;
+    text-align:center;
+    padding:.6rem 0;
+    border-radius:12px;
 }
-.btn.small:hover{ background:#db2777; }
 
-/* --- NO DATA --- */
+/* -------------------- NO DATA -------------------- */
 .no-data{
     text-align:center;
-    background:#f5f5f5;
-    color:#777;
     padding:1rem;
-    border-radius:10px;
+    border-radius:14px;
+    background:#fff1f7;
+    border:1px solid #fbcfe8;
+    color:#db2777;
+    font-weight:500;
+    margin-top:.5rem;
 }
+
 </style>
 
 <!-- ===================== KONTEN ===================== -->
 <div class="page-container">
 
-    <h2 style="margin-bottom:.5rem;">Katalog Produk</h2>
+    <h2 style="font-size:1.7rem;margin-bottom:.5rem;color:#db2777;font-weight:800;">
+        Katalog Produk
+    </h2>
 
     <!-- FORM SEARCH -->
     <form method="get" class="header-search">
@@ -147,9 +193,10 @@ include __DIR__ . '/../header.php';
         <button class="btn small" type="submit">Cari</button>
     </form>
 
-    <!-- LIST PRODUK -->
     <?php if (!$products): ?>
+        
         <p class="no-data">Tidak ada produk ditemukan.</p>
+
     <?php else: ?>
 
         <div class="grid">
@@ -169,11 +216,15 @@ include __DIR__ . '/../header.php';
                     </a>
 
                     <div class="content">
+
                         <strong><?= htmlspecialchars($p['name']); ?></strong>
+
                         <div class="price"><?= rupiah($p['base_price']); ?></div>
+
                         <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>" class="btn small">
                             Lihat Detail
                         </a>
+
                     </div>
 
                 </div>

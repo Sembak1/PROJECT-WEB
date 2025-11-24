@@ -9,106 +9,103 @@ $items = keranjang_item();
 
 // Jika belum login atau keranjang kosong
 if (!$user || !$items) {
-    header('Location: checkout.php');
+    header("Location: checkout.php");
     exit;
 }
 
-// =============================
-// Normalisasi item & hitung total
-// =============================
-$subtotal   = 0.0;
+/* ==========================================================
+   NORMALISASI DATA KERANJANG
+========================================================== */
+$subtotal   = 0;
 $normalized = [];
 
-foreach ($items as $vid => $item) {
+foreach ($items as $pid => $item) {
 
-    $vid = (int)$vid;
+    $pid = (int)$pid;
     $qty = max(1, (int)$item['qty']);
 
-    // Ambil data varian + produk
-    $qry = $pdo->prepare("
-        SELECT 
-            pv.id,
-            pv.variant_name,
-            pv.additional_price,
-            p.name AS product_name,
-            p.base_price
-        FROM product_variants pv
-        JOIN products p ON p.id = pv.product_id
-        WHERE pv.id = ? 
-          AND pv.is_active = 1 
-          AND p.is_active = 1
+    // Ambil produk
+    $q = $pdo->prepare("
+        SELECT id, name, base_price, stock 
+        FROM products 
+        WHERE id = ? AND is_active = 1
         LIMIT 1
     ");
-    $qry->execute([$vid]);
-    $row = $qry->fetch();
+    $q->execute([$pid]);
+    $p = $q->fetch();
 
-    if (!$row) continue;
+    if (!$p) continue;
 
-    $unitPrice = (float)$row['base_price'] + (float)$row['additional_price'];
-    $subtotal += $unitPrice * $qty;
+    $price = (int)$p['base_price'];
+    $subtotal += $price * $qty;
 
-    $normalized[$vid] = [
-        'qty'         => $qty,
-        'price'       => $unitPrice,
-        'nama'        => $row['product_name'],
-        'nama_varian' => $row['variant_name']
+    $normalized[$pid] = [
+        'nama'  => $p['name'],
+        'qty'   => $qty,
+        'price' => $price,
+        'stock' => $p['stock']
     ];
 }
 
 if (empty($normalized)) {
-    header('Location: keranjang.php');
+    header("Location: keranjang.php");
     exit;
 }
 
 try {
 
-    // =============================
     // Mulai transaksi
-    // =============================
     $pdo->beginTransaction();
 
-    // Simpan pesanan utama
+    /* ==========================================================
+       1. SIMPAN DATA PESANAN UTAMA
+    =========================================================== */
     $insOrder = $pdo->prepare("
-        INSERT INTO orders (user_id, total, status, created_at)
+        INSERT INTO orders (user_id, total_price, status, created_at)
         VALUES (?, ?, 'pending', NOW())
     ");
     $insOrder->execute([(int)$user['id'], $subtotal]);
 
     $orderId = (int)$pdo->lastInsertId();
 
-    // Update stok
+    /* ==========================================================
+       2. PERSIAPAN QUERY
+    =========================================================== */
     $updateStok = $pdo->prepare("
-        UPDATE inventory
-        SET stock = stock - :qty
-        WHERE variant_id = :vid AND stock >= :qty
+        UPDATE products 
+        SET stock = stock - :qty 
+        WHERE id = :pid 
+          AND stock >= :qty
     ");
 
-    // Insert detail order
     $insItem = $pdo->prepare("
-        INSERT INTO order_items (order_id, variant_id, quantity, price)
-        VALUES (:oid, :vid, :qty, :price)
+        INSERT INTO order_items (order_id, product_id, quantity, price)
+        VALUES (:oid, :pid, :qty, :price)
     ");
 
-    foreach ($normalized as $vid => $data) {
+    /* ==========================================================
+       3. SIMPAN ITEM & UPDATE STOK
+    =========================================================== */
+    foreach ($normalized as $pid => $data) {
 
         // Kurangi stok
         $updateStok->execute([
             ':qty' => $data['qty'],
-            ':vid' => $vid
+            ':pid' => $pid
         ]);
 
-        // Jika stok tidak cukup → gagalkan transaksi
+        // Jika stok tidak cukup → batalkan seluruh transaksi
         if ($updateStok->rowCount() === 0) {
 
             $pdo->rollBack();
             include __DIR__ . '/../header.php';
 
             echo "
-            <div class='alert error'>
-                Stok tidak cukup untuk varian: 
-                <strong>" . htmlspecialchars($data['nama_varian']) . "</strong>.
+            <div class='alert error' style='padding:14px; border-radius:12px; background:#ffe1e1; color:#b91c1c;'>
+                Stok tidak cukup untuk produk <strong>" . htmlspecialchars($data['nama']) . "</strong>.
                 Silakan kurangi jumlah di keranjang.
             </div>
+
             <p><a class='btn' href='keranjang.php'>Kembali ke Keranjang</a></p>
             ";
 
@@ -116,38 +113,40 @@ try {
             exit;
         }
 
-        // Simpan barang dalam pesanan
+        // Simpan item order
         $insItem->execute([
             ':oid'   => $orderId,
-            ':vid'   => $vid,
+            ':pid'   => $pid,
             ':qty'   => $data['qty'],
             ':price' => $data['price']
         ]);
     }
 
-    // =============================
-    // Selesai → commit
-    // =============================
+    /* ==========================================================
+       4. COMMIT TRANSAKSI
+    =========================================================== */
     $pdo->commit();
 
-    // Bersihkan keranjang
+    // Kosongkan keranjang
     $_SESSION['keranjang'] = [];
 
     include __DIR__ . '/../header.php';
 
     echo "
-    <div class='alert success'>
+    <div class='alert success' 
+         style='padding:14px; border-radius:12px; background:#dcfce7; color:#166534;'>
         Pesanan berhasil dibuat!<br>
         ID Pesanan: <strong>#$orderId</strong>
     </div>
 
-    <p>
+    <p style='margin-top:12px; display:flex; gap:.7rem;'>
         <a class='btn' href='beranda.php'>Kembali ke Beranda</a>
-        <a class='btn secondary' href='daftar_produk.php'>Lanjut Belanja</a>
+        <a class='btn secondary' href='daftar_produk.php'>Belanja Lagi</a>
     </p>
     ";
 
     include __DIR__ . '/../footer.php';
+    exit;
 
 } catch (Throwable $e) {
 
@@ -158,7 +157,8 @@ try {
     include __DIR__ . '/../header.php';
 
     echo "
-    <div class='alert error'>
+    <div class='alert error'
+         style='padding:14px; border-radius:12px; background:#ffe1e1; color:#b91c1c;'>
         Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.
     </div>
 
