@@ -123,7 +123,7 @@ h1,h2,h3{margin:0 0 .5rem;color:var(--text);}
 
         <div class="info-card">
             <h3><?= $pesananPending ?></h3>
-            <p>Pesanan Pending</p>
+            <p>Pesanan Masuk</p>
         </div>
     </div>
 
