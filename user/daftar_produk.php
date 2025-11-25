@@ -105,22 +105,26 @@ include __DIR__ . '/../header.php';
     opacity:.9;
 }
 
-/* -------------------- GRID -------------------- */
+/* -------------------- GRID KATALOG -------------------- */
 .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    display:flex;
+    flex-wrap:wrap;
     gap:1.5rem;
+    justify-content:flex-start;     /* CARD DIRATAKAN KE KANAN */
+    margin-top:1.5rem;
 }
 
 /* -------------------- CARD PRODUK -------------------- */
 .card{
+    width:100%;
+    max-width:320px;
     background:white;
     border-radius:18px;
     border:1px solid #fbcfe8;
     box-shadow:0 8px 22px rgba(236,72,153,.10);
     overflow:hidden;
     transition:.25s ease;
-    padding-bottom:10px;
+    padding-bottom:12px;
 }
 
 .card:hover{
@@ -128,11 +132,12 @@ include __DIR__ . '/../header.php';
     box-shadow:0 12px 28px rgba(236,72,153,.18);
 }
 
-/* -------------------- FOTO KECIL (200px) -------------------- */
+/* -------------------- FOTO PRODUK -------------------- */
 .card img{
     width:100%;
-    height:200px;     /* FOTO DIPERKECIL */
+    height:auto;
     object-fit:cover;
+    display:block;
     border-radius:18px 18px 0 0;
 }
 
@@ -149,7 +154,7 @@ include __DIR__ . '/../header.php';
     display:block;
 }
 
-/* Harga pink */
+/* Harga */
 .price{
     font-weight:800;
     font-size:1.05rem;
@@ -164,6 +169,7 @@ include __DIR__ . '/../header.php';
     text-align:center;
     padding:.6rem 0;
     border-radius:12px;
+    font-weight:600;
 }
 
 /* -------------------- NO DATA -------------------- */
@@ -179,6 +185,7 @@ include __DIR__ . '/../header.php';
 }
 
 </style>
+
 
 <!-- ===================== KONTEN ===================== -->
 <div class="page-container">

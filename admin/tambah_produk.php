@@ -231,7 +231,7 @@ include __DIR__ . '/../header.php';
     <input type="text" name="nama" required>
 
     <label>Harga Produk:</label>
-    <input type="text" name="harga" placeholder="70.000" required>
+    <input type="text" name="harga" placeholder="00.000" required>
 
     <label>Stok Produk:</label>
     <input type="number" name="stock" value="0" min="0" required>
