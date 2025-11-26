@@ -1,40 +1,56 @@
 <?php
 session_start();
+// Memulai session agar admin dapat mengakses halaman ini.
+
 require_once __DIR__ . '/../inti/koneksi_database.php';
+// Mengambil file koneksi database (PDO).
+
 require_once __DIR__ . '/../inti/fungsi.php';
+// Mengambil fungsi tambahan (misalnya rupiah, dll).
 
 /* ==========================================================
    CEK ADMIN LOGIN
 ========================================================== */
 if (empty($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+    // Jika belum login atau bukan admin → redirect ke login.
     header('Location: /glowify/akun/masuk.php');
     exit;
 }
 
-$error       = "";
-$success     = "";
-$previewFile = "";
+$error       = "";   // Penyimpanan pesan error jika ada kesalahan.
+$success     = "";   // Penyimpanan pesan sukses.
+$previewFile = "";   // Menyimpan nama file preview gambar.
 
 /* ==========================================================
    UPLOAD GAMBAR PREVIEW
+   (gambar disimpan sementara dulu di folder preview)
 ========================================================== */
 if (isset($_POST['upload_preview'])) {
 
     if (!empty($_FILES['gambar_preview']['name'])) {
 
         $dir = __DIR__ . "/../aset/preview/";
+        // Folder tempat menyimpan preview
+
         if (!is_dir($dir)) mkdir($dir, 0777, true);
+        // Jika folder belum ada → buat folder
 
         $ext     = strtolower(pathinfo($_FILES['gambar_preview']['name'], PATHINFO_EXTENSION));
+        // Ambil ekstensi file
+
         $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+        // Ekstensi yang diperbolehkan
 
         if (!in_array($ext, $allowed)) {
+            // Validasi ekstensi
             $error = "Format gambar harus JPG, JPEG, PNG, atau WEBP.";
         } else {
 
+            // Nama file unik
             $previewFile = "preview_" . time() . "_" . rand(1000, 9999) . "." . $ext;
             $path = $dir . $previewFile;
 
+            // Upload file ke folder preview
             if (!move_uploaded_file($_FILES['gambar_preview']['tmp_name'], $path)) {
                 $error = "Gagal mengunggah gambar.";
             }
@@ -42,40 +58,46 @@ if (isset($_POST['upload_preview'])) {
     }
 }
 
-/* Jika gambar sudah ada sebelumnya */
+/* Jika sebelumnya sudah ada preview file, maka tetap gunakan */
 if (!empty($_POST['nama_file_preview'])) {
     $previewFile = $_POST['nama_file_preview'];
 }
 
 /* ==========================================================
-   SIMPAN PRODUK BARU (DENGAN STOK)
+   SIMPAN PRODUK BARU
+   (memindahkan gambar, membuat slug, menyimpan ke DB)
 ========================================================== */
 if (isset($_POST['simpan_produk'])) {
 
-    $nama      = trim($_POST['nama']);
-    $deskripsi = trim($_POST['deskripsi']);
-    $rawPrice  = str_replace('.', '', $_POST['harga']);
-    $harga     = (int)$rawPrice;
-    $stock     = (int)$_POST['stock'];
+    $nama      = trim($_POST['nama']);         // Nama produk
+    $deskripsi = trim($_POST['deskripsi']);    // Deskripsi produk
+    $rawPrice  = str_replace('.', '', $_POST['harga']); // Hilangkan titik
+    $harga     = (int)$rawPrice;               // Harga integer
+    $stock     = (int)$_POST['stock'];         // Stok
 
     if (empty($_POST['nama_file_preview'])) {
+        // Jika gambar belum diupload
         $error = "Silakan upload gambar produk.";
+
     } elseif ($nama === "" || $harga <= 0) {
+        // Validasi nama dan harga
         $error = "Nama dan harga wajib diisi.";
+
     } else {
 
-        /* Pindahkan file preview menuju folder uploads */
+        // Pindahkan gambar dari folder preview → uploads
         $src = __DIR__ . "/../aset/preview/" . $_POST['nama_file_preview'];
         $dst = __DIR__ . "/../aset/uploads/" . $_POST['nama_file_preview'];
 
         if (!is_dir(__DIR__ . "/../aset/uploads/")) mkdir(__DIR__ . "/../aset/uploads/", 0777, true);
 
         @rename($src, $dst);
+        // Memindahkan file
 
-        /* Buat slug */
+        // Membuat slug dari nama produk
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9]+/', '-', $nama)));
 
-        /* Simpan produk ke database */
+        /* Simpan produk */
         $q = $pdo->prepare("
             INSERT INTO products (name, slug, base_price, description, stock, is_active, created_at)
             VALUES (?, ?, ?, ?, ?, 1, NOW())
@@ -84,6 +106,7 @@ if (isset($_POST['simpan_produk'])) {
         $q->execute([$nama, $slug, $harga, $deskripsi, $stock]);
 
         $pid = $pdo->lastInsertId();
+        // Mengambil ID produk terakhir yang baru disimpan
 
         /* Simpan gambar utama */
         $img = $pdo->prepare("
@@ -94,11 +117,12 @@ if (isset($_POST['simpan_produk'])) {
         $img->execute([$pid, "aset/uploads/" . $_POST['nama_file_preview']]);
 
         $success     = "Produk berhasil ditambahkan!";
-        $previewFile = "";
+        $previewFile = ""; // Reset preview
     }
 }
 
 include __DIR__ . '/../header.php';
+// Memanggil header HTML
 ?>
 
 
@@ -152,7 +176,7 @@ include __DIR__ . '/../header.php';
         outline: none;
     }
 
-    /* Preview Image */
+    /* Preview foto produk */
     .preview-box img {
         width: 240px;
         height: 240px;
@@ -161,7 +185,7 @@ include __DIR__ . '/../header.php';
         box-shadow: 0 5px 14px rgba(0,0,0,.18);
     }
 
-    /* Tombol Premium Pink */
+    /* Tombol pink premium */
     .btn-pink {
         background: #ec4899;
         border: none;
@@ -186,10 +210,12 @@ include __DIR__ . '/../header.php';
 
 <h2>Tambah Produk Baru</h2>
 
+<!-- Pesan Error -->
 <?php if ($error): ?>
     <div class="alert error"><?= htmlspecialchars($error); ?></div>
 <?php endif; ?>
 
+<!-- Pesan Sukses -->
 <?php if ($success): ?>
     <div class="alert success"><?= htmlspecialchars($success); ?></div>
 <?php endif; ?>
@@ -203,25 +229,29 @@ include __DIR__ . '/../header.php';
 <?php if ($previewFile): ?>
     <div class="preview-box" style="margin-bottom:20px;">
         <p style="font-weight:600;color:#db2777;margin-bottom:8px;">Preview Gambar:</p>
+
+        <!-- Menampilkan gambar preview -->
         <img src="/glowify/aset/preview/<?= htmlspecialchars($previewFile); ?>" alt="Preview">
     </div>
 <?php endif; ?>
 
 
 <!-- ==========================================================
-        FORM UPLOAD GAMBAR
+        FORM UPLOAD GAMBAR (OTO SUBMIT)
 ========================================================== -->
 <form method="post" enctype="multipart/form-data" style="margin-bottom:30px;">
     <input type="hidden" name="upload_preview" value="1">
+    <!-- Menyimpan nama preview jika sudah ada -->
     <input type="hidden" name="nama_file_preview" value="<?= htmlspecialchars($previewFile); ?>">
 
     <label>Pilih Gambar Produk:</label>
     <input type="file" name="gambar_preview" required onchange="this.form.submit()">
+    <!-- onchange submit = upload langsung tanpa klik tombol -->
 </form>
 
 
 <!-- ==========================================================
-        FORM DATA PRODUK
+        FORM INPUT DETAIL PRODUK
 ========================================================== -->
 <form method="post">
     <input type="hidden" name="simpan_produk" value="1">
@@ -239,9 +269,11 @@ include __DIR__ . '/../header.php';
     <label>Deskripsi Produk:</label>
     <textarea name="deskripsi" rows="4"></textarea>
 
+    <!-- Tombol simpan -->
     <button class="btn-pink" type="submit">Simpan Produk</button>
 </form>
 
 </div>
 
 <?php include __DIR__ . '/../footer.php'; ?>
+<!-- Menutup halaman -->

@@ -1,36 +1,51 @@
 <?php
-session_start();
-require_once __DIR__ . '/../inti/koneksi_database.php';
+session_start(); 
+// Memulai session untuk menyimpan data login.
 
+require_once __DIR__ . '/../inti/koneksi_database.php';
+// Menghubungkan ke database menggunakan PDO.
+
+// Variabel untuk menyimpan pesan
 $error = '';
 $success = '';
 
+/* ==========================================================
+   PROSES REGISTER CUSTOMER
+========================================================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Mengecek apakah form dikirim via POST
 
-    $name     = trim($_POST['name'] ?? '');
-    $email    = trim($_POST['email'] ?? '');
-    $phone    = trim($_POST['phone'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-    $confirm  = trim($_POST['confirm'] ?? '');
-    $role     = 'customer';
+    $name     = trim($_POST['name'] ?? '');      // Nama lengkap
+    $email    = trim($_POST['email'] ?? '');     // Email pengguna
+    $phone    = trim($_POST['phone'] ?? '');     // Nomor HP (opsional)
+    $password = trim($_POST['password'] ?? '');  // Password
+    $confirm  = trim($_POST['confirm'] ?? '');   // Konfirmasi password
+    $role     = 'customer';                      // Role default untuk user baru
 
+    // Validasi: semua field wajib diisi (kecuali phone)
     if ($name === '' || $email === '' || $password === '' || $confirm === '') {
         $error = 'Semua field wajib diisi.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    }
+    // Validasi email
+    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid.';
-    } elseif ($password !== $confirm) {
+    }
+    // Password dan konfirmasi harus sama
+    elseif ($password !== $confirm) {
         $error = 'Password dan konfirmasi tidak sama.';
-    } else {
-        // Cek email sudah ada
+    }
+    else {
+        // Mengecek apakah email sudah terdaftar sebelumnya
         $cek = $pdo->prepare("SELECT id FROM users WHERE email = ?");
         $cek->execute([$email]);
 
         if ($cek->fetch()) {
             $error = 'Email sudah terdaftar.';
         } else {
-
+            // Hash password agar lebih aman
             $hash = password_hash($password, PASSWORD_DEFAULT);
 
+            // Menyimpan akun baru ke tabel users
             $stmt = $pdo->prepare("
                 INSERT INTO users (name, email, phone, password_hash, role, is_active, created_at)
                 VALUES (?, ?, ?, ?, ?, 1, NOW())
@@ -42,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -50,24 +66,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Daftar Akun - Glowify Beauty</title>
 
 <style>
-    /* Fix tampilan agar tidak ada scroll */
+    /* =============================================
+       RESET & BODY
+       ============================================= */
     html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-        overflow: hidden;
-        background: #f9fafb;
+        overflow: hidden;                  /* Hilangkan scroll */
+        background: #f9fafb;               /* Warna dasar lembut */
         font-family: 'Segoe UI', sans-serif;
     }
 
-    /* Full center layout */
+    /* =============================================
+       WRAPPER TENGAH LAYAR
+       ============================================= */
     .auth-wrapper {
         height: 100vh;
         display: flex;
-        justify-content: center;
-        align-items: center;
+        justify-content: center;           /* Tengah horizontal */
+        align-items: center;               /* Tengah vertikal */
     }
 
+    /* =============================================
+       KOTAK FORM REGISTER
+       ============================================= */
     .auth-container {
         width: 420px;
         background: white;
@@ -78,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     h1 {
-        color: #ec4899;
+        color: #ec4899;        /* Pink Glowify */
         margin-top: 0;
     }
 
@@ -87,6 +110,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-bottom: 1.7rem;
     }
 
+    /* =============================================
+       LABEL DAN INPUT
+       ============================================= */
     label {
         display: block;
         text-align: left;
@@ -103,6 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-top: .2rem;
     }
 
+    /* =============================================
+       TOMBOL SUBMIT
+       ============================================= */
     .btn {
         width: 100%;
         padding: .7rem;
@@ -117,9 +146,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .btn:hover {
-        background: #db2777;
+        background: #db2777; /* Pink lebih gelap saat hover */
     }
 
+    /* =============================================
+       ALERT ERROR & SUCCESS
+       ============================================= */
     .alert {
         padding: .75rem;
         border-radius: 10px;
@@ -129,6 +161,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .error { background:#fee2e2; color:#991b1b; }
     .success { background:#d1fae5; color:#065f46; }
 
+    /* =============================================
+       LINK KE HALAMAN LOGIN
+       ============================================= */
     a {
         color: #ec4899;
         text-decoration: none;
@@ -143,15 +178,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="auth-container">
 
+        <!-- BRAND -->
         <h1>🌸 Glowify Beauty 🌸</h1>
         <h2>Buat Akun Baru</h2>
 
+        <!-- TAMPILKAN PESAN ERROR/SUKSES -->
         <?php if ($error): ?>
             <div class="alert error"><?= htmlspecialchars($error); ?></div>
         <?php elseif ($success): ?>
             <div class="alert success"><?= htmlspecialchars($success); ?></div>
         <?php endif; ?>
 
+        <!-- FORM REGISTER -->
         <form method="post">
 
             <label>Nama Lengkap</label>

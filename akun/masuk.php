@@ -1,31 +1,50 @@
 <?php
 session_start();
-require_once __DIR__ . '/../inti/koneksi_database.php';
+// Memulai session untuk mengelola status login pengguna.
 
-// Jika user sudah login
+require_once __DIR__ . '/../inti/koneksi_database.php';
+// Mengambil koneksi database PDO.
+
+
+
+/* ==========================================================
+   CEK JIKA USER SUDAH LOGIN → LANGSUNG REDIRECT
+========================================================== */
 if (!empty($_SESSION['user'])) {
-    $role = $_SESSION['user']['role'];
-    header("Location: " . ($role === 'admin' 
-        ? "/glowify/admin/dashboard_admin.php" 
+
+    $role = $_SESSION['user']['role']; // Ambil role user
+
+    // Jika admin → dashboard admin
+    // Jika customer → beranda user
+    header("Location: " . ($role === 'admin'
+        ? "/glowify/admin/dashboard_admin.php"
         : "/glowify/user/beranda.php"
     ));
     exit;
 }
 
-$error = "";
+$error = ""; // Variabel untuk menyimpan pesan error
 
-// Jika form disubmit
+
+
+/* ==========================================================
+   PROSES LOGIN (SAAT TOMBOL SUBMIT DITEKAN)
+========================================================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $email    = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $email    = trim($_POST['email'] ?? '');      // Input email
+    $password = trim($_POST['password'] ?? '');   // Input password
 
+    // Validasi field kosong
     if ($email === "" || $password === "") {
         $error = "Email dan password wajib diisi!";
-    } else {
+    } 
+    else {
+
+        // Cek email dalam database
         $stmt = $pdo->prepare("
-            SELECT id, name, email, password_hash, role, is_active 
-            FROM users 
+            SELECT id, name, email, password_hash, role, is_active
+            FROM users
             WHERE email = ?
             LIMIT 1
         ");
@@ -33,22 +52,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user) {
+
+            // Jika akun dinonaktifkan
             if ($user['is_active'] != 1) {
                 $error = "Akun telah dinonaktifkan.";
-            } elseif (!password_verify($password, $user['password_hash'])) {
+            }
+            // Jika password salah
+            elseif (!password_verify($password, $user['password_hash'])) {
                 $error = "Email atau password salah!";
-            } else {
+            }
+            // Jika login berhasil
+            else {
 
+                // Simpan user ke session
                 $_SESSION['user'] = [
-                    'id' => $user['id'],
-                    'name' => $user['name'],
+                    'id'    => $user['id'],
+                    'name'  => $user['name'],
                     'email' => $user['email'],
-                    'role' => $user['role']
+                    'role'  => $user['role']
                 ];
 
-                session_regenerate_id(true);
+                session_regenerate_id(true); // Keamanan session
 
-                // Redirect sebelumnya
+
+
+                /* ========================================================
+                   CEK APAKAH USER DARI HALAMAN LAIN YANG MEMBUTUHKAN LOGIN
+                ======================================================== */
                 if (!empty($_SESSION['redirect_setelah_login'])) {
                     $go = $_SESSION['redirect_setelah_login'];
                     unset($_SESSION['redirect_setelah_login']);
@@ -56,18 +86,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
+                // Redirect default berdasarkan role
                 header("Location: " . ($user['role'] === 'admin'
                     ? "/glowify/admin/dashboard_admin.php"
                     : "/glowify/user/beranda.php"
                 ));
                 exit;
             }
-        } else {
+        } 
+        // Jika email tidak ditemukan
+        else {
             $error = "Email tidak ditemukan!";
         }
     }
 }
 ?>
+
+
+
+<!-- ========================================================
+       HTML + CSS LOGIN PAGE (TAMPILAN HALAMAN LOGIN)
+======================================================== -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -76,34 +115,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Login - Glowify Beauty</title>
 
 <style>
-    /* --- FIX AGAR TIDAK ADA SCROLL --- */
+    /* ================================
+       RESET & FIX AGAR TIDAK ADA SCROLL
+    ================================ */
     html, body {
         height: 100%;
         margin: 0;
-        overflow: hidden; /* ⛔ Hapus scroll vertikal/horizontal */
+        overflow: hidden; /* Mengunci scroll agar tampilan bersih */
         font-family: 'Segoe UI', sans-serif;
-        background: #f9fafb;
+        background: #f9fafb; /* Warna background lembut */
     }
 
-    /* --- Container full screen dan center --- */
+    /* ================================
+       WRAPPER AGAR FORM DI TENGAH LAYAR
+    ================================ */
     .auth-wrapper {
         height: 100vh;
         display: flex;
-        justify-content: center;
-        align-items: center;
+        justify-content: center; /* Tengah horizontal */
+        align-items: center;     /* Tengah vertikal */
     }
 
+    /* ================================
+       KOTAK LOGIN
+    ================================ */
     .auth-container {
         width: 400px;
         background: white;
         padding: 2rem;
         border-radius: 14px;
         box-shadow: 0 4px 12px rgba(0,0,0,.1);
-        text-align: center;
+        text-align: center; /* Semua teks di tengah */
     }
 
     h1 {
-        color: #ec4899;
+        color: #ec4899; /* Pink Glowify */
         margin: 0 0 .5rem;
         font-size: 1.8rem;
     }
@@ -114,6 +160,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         font-size: 1.2rem;
     }
 
+    /* ================================
+       LABEL & INPUT FIELD
+    ================================ */
     label {
         display: block;
         text-align: left;
@@ -131,6 +180,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-bottom: .3rem;
     }
 
+    /* ================================
+       TOMBOL LOGIN
+    ================================ */
     .btn {
         width: 100%;
         padding: .7rem;
@@ -141,12 +193,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         cursor: pointer;
         font-size: 1rem;
         margin-top: 1rem;
+        transition: .2s;
     }
 
     .btn:hover {
-        background: #db2777;
+        background: #db2777; /* Pink gelap saat hover */
     }
 
+    /* ================================
+       ALERT ERROR
+    ================================ */
     .error {
         background: #fee2e2;
         color: #991b1b;
@@ -155,6 +211,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-bottom: 1rem;
     }
 
+    /* ================================
+       LINK KE HALAMAN REGISTER
+    ================================ */
     a {
         color: #ec4899;
         text-decoration: none;
@@ -164,29 +223,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
+
+<!-- ========================================================
+       TAMPILAN FORM LOGIN
+======================================================== -->
 <div class="auth-wrapper">
 
     <div class="auth-container">
 
+        <!-- Judul Website -->
         <h1>Glowify Beauty</h1>
         <h2>Masuk ke Akun</h2>
 
+        <!-- Menampilkan pesan error jika ada -->
         <?php if ($error): ?>
             <div class="error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
+        <!-- FORM LOGIN -->
         <form method="POST">
+
+            <!-- Input Email -->
             <label>Email</label>
             <input type="email" name="email" placeholder="email@example.com" required>
 
+            <!-- Input Password -->
             <label>Password</label>
             <input type="password" name="password" placeholder="••••••••" required>
 
+            <!-- Tombol Masuk -->
             <button type="submit" class="btn">Masuk</button>
         </form>
 
+        <!-- Link ke Register -->
         <p style="margin-top:1.1rem;">
-            Belum punya akun? <a href="daftar.php">Daftar di sini</a>
+            Belum punya akun? 
+            <a href="daftar.php">Daftar di sini</a>
         </p>
 
     </div>
