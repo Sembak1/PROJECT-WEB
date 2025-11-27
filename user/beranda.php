@@ -1,10 +1,21 @@
 <?php
+// Mulai session untuk membaca status login user
 session_start();
-require_once __DIR__ . '/../inti/koneksi_database.php';
-require_once __DIR__ . '/../inti/autentikasi.php';
-require_once __DIR__ . '/../inti/fungsi.php';
 
-// ===================== Ambil Produk Terbaru =====================
+require_once __DIR__ . '/../inti/koneksi_database.php';  
+// Import koneksi database (PDO)
+
+require_once __DIR__ . '/../inti/autentikasi.php';
+// Import fungsi cek_login / cek_admin jika dibutuhkan
+
+require_once __DIR__ . '/../inti/fungsi.php';
+// Import fungsi umum seperti rupiah(), gambar_produk, keranjang, dll
+
+
+
+/* ============================================================
+   AMBIL PRODUK TERBARU (12 PRODUK)
+============================================================ */
 $stmt = $pdo->query("
     SELECT 
         p.id, 
@@ -24,11 +35,18 @@ $stmt = $pdo->query("
 ");
 
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Hasil query disimpan dalam array asosiatif
 
+// Import header (navbar + struktur HTML awal)
 include __DIR__ . '/../header.php';
 ?>
 
-<!-- ===================== HERO SECTION ===================== -->
+
+
+<!-- ============================================================
+     HERO SECTION
+     Bagian banner utama di halaman beranda
+============================================================ -->
 <section style="
     padding:80px 20px;
     text-align:center;
@@ -53,6 +71,7 @@ include __DIR__ . '/../header.php';
         Temukan koleksi skincare & makeup terbaik untuk kecantikan alami kamu.
     </p>
 
+    <!-- Tombol menuju daftar produk -->
     <a href='/glowify/user/daftar_produk.php' style="
         display:inline-block;
         padding:14px 32px;
@@ -68,7 +87,11 @@ include __DIR__ . '/../header.php';
     </a>
 </section>
 
-<!-- ===================== PRODUK TERBARU ===================== -->
+
+
+<!-- ============================================================
+     PRODUK TERBARU (GRID KATALOG)
+============================================================ -->
 <div style="max-width:1100px;margin:50px auto;padding:0 16px;">
     
     <h2 style="
@@ -79,6 +102,7 @@ include __DIR__ . '/../header.php';
         Produk Terbaru
     </h2>
 
+    <!-- GRID LIST PRODUK -->
     <div style="
         display:grid;
         grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
@@ -89,11 +113,13 @@ include __DIR__ . '/../header.php';
             <?php foreach ($products as $p): ?>
 
                 <?php
+                    // Menentukan gambar utama produk
                     $image = $p['image_url'] 
                         ? "/glowify/" . $p['image_url']
                         : "/glowify/aset/gambar/default.png";
                 ?>
 
+                <!-- CARD PRODUK -->
                 <div style="
                     background:white;
                     border-radius:18px;
@@ -105,6 +131,7 @@ include __DIR__ . '/../header.php';
                 onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 8px 20px rgba(17,24,39,0.12)'"
                 onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 14px rgba(17,24,39,0.08)'">
 
+                    <!-- LINK KE HALAMAN DETAIL PRODUK -->
                     <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>">
                         <img src="<?= htmlspecialchars($image); ?>" 
                             alt="<?= htmlspecialchars($p['name']); ?>"
@@ -117,7 +144,9 @@ include __DIR__ . '/../header.php';
                             ">
                     </a>
 
+                    <!-- NAMA + HARGA + TOMBOL -->
                     <div>
+                        <!-- Nama produk -->
                         <div style="
                             font-weight:700;
                             font-size:1rem;
@@ -127,6 +156,7 @@ include __DIR__ . '/../header.php';
                             <?= htmlspecialchars($p['name']); ?>
                         </div>
 
+                        <!-- Harga produk -->
                         <div style="
                             font-weight:800;
                             color:#db2777;
@@ -135,6 +165,7 @@ include __DIR__ . '/../header.php';
                             <?= rupiah($p['base_price']); ?>
                         </div>
 
+                        <!-- Tombol lihat detail -->
                         <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>" 
                            style="
                                display:block;
@@ -156,13 +187,18 @@ include __DIR__ . '/../header.php';
 
             <?php endforeach; ?>
         <?php else: ?>
+            <!-- Jika belum ada produk -->
             <p style="color:#6b7280;font-style:italic;">Belum ada produk tersedia.</p>
         <?php endif; ?>
 
     </div>
 </div>
 
-<!-- ===================== TENTANG GLOWIFY ===================== -->
+
+
+<!-- ============================================================
+     SECTION TENTANG GLOWIFY
+============================================================ -->
 <section style="
     padding:60px 20px;
     text-align:center;
@@ -188,4 +224,7 @@ include __DIR__ . '/../header.php';
     </p>
 </section>
 
+
+
+<!-- FOOTER -->
 <?php include __DIR__ . '/../footer.php'; ?>

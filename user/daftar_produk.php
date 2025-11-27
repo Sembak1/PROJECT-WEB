@@ -1,15 +1,24 @@
 <?php
+// Mengimpor sistem login (untuk cek role user jika perlu)
 require_once __DIR__ . '/../inti/autentikasi.php';
+
+// Mengimpor fungsi umum: rupiah(), keranjang_item(), dll
 require_once __DIR__ . '/../inti/fungsi.php';
 
+
+// Ambil keyword pencarian jika ada
 $q = isset($_GET['q']) ? trim($_GET['q']) : '';
 
-/* ================================
-   QUERY PRODUK + GAMBAR UTAMA
-================================ */
+
+
+/* ======================================================
+   QUERY PRODUK + GAMBAR UTAMA (DENGAN FITUR SEARCH)
+====================================================== */
 if ($q !== '') {
+    // Jika user mengetik pencarian → buat wildcard
     $like = '%' . $q . '%';
 
+    // Prepare query agar aman dari SQL Injection
     $stmt = $pdo->prepare("
         SELECT 
             p.id,
@@ -29,7 +38,9 @@ if ($q !== '') {
     ");
 
     $stmt->execute([':q' => $like]);
+
 } else {
+    // Jika tidak ada pencarian → tampilkan semua produk
     $stmt = $pdo->query("
         SELECT 
             p.id,
@@ -48,15 +59,19 @@ if ($q !== '') {
     ");
 }
 
+// Hasil query dalam bentuk array
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* HEADER */
+
+// Memanggil header (navbar + HTML awal)
 include __DIR__ . '/../header.php';
 ?>
 
+
+
+<!-- ======================== CSS INLINE HALAMAN KATALOG ======================== -->
 <style>
 
-/* ======================== GLOWIFY PREMIUM PINK ======================== */
 .page-container{
     max-width:1100px;
     margin:40px auto;
@@ -64,13 +79,14 @@ include __DIR__ . '/../header.php';
     font-family:'Inter',sans-serif;
 }
 
-/* -------------------- SEARCH BAR -------------------- */
+/* Search bar */
 .header-search{
     display:flex;
     gap:.7rem;
     margin:1rem 0 2rem;
 }
 
+/* Input pencarian */
 .header-search input{
     padding:.75rem 1rem;
     border-radius:14px;
@@ -105,16 +121,16 @@ include __DIR__ . '/../header.php';
     opacity:.9;
 }
 
-/* -------------------- GRID KATALOG -------------------- */
+/* Grid katalog */
 .grid{
     display:flex;
     flex-wrap:wrap;
     gap:1.5rem;
-    justify-content:flex-start;     /* CARD DIRATAKAN KE KANAN */
+    justify-content:flex-start;
     margin-top:1.5rem;
 }
 
-/* -------------------- CARD PRODUK -------------------- */
+/* Card produk */
 .card{
     width:100%;
     max-width:320px;
@@ -132,7 +148,7 @@ include __DIR__ . '/../header.php';
     box-shadow:0 12px 28px rgba(236,72,153,.18);
 }
 
-/* -------------------- FOTO PRODUK -------------------- */
+/* Gambar produk */
 .card img{
     width:100%;
     height:auto;
@@ -141,11 +157,11 @@ include __DIR__ . '/../header.php';
     border-radius:18px 18px 0 0;
 }
 
-/* -------------------- CONTENT -------------------- */
 .card .content{
     padding:14px 16px;
 }
 
+/* Nama produk */
 .card strong{
     font-size:1.05rem;
     font-weight:700;
@@ -172,7 +188,7 @@ include __DIR__ . '/../header.php';
     font-weight:600;
 }
 
-/* -------------------- NO DATA -------------------- */
+/* Jika tidak ada produk */
 .no-data{
     text-align:center;
     padding:1rem;
@@ -187,30 +203,36 @@ include __DIR__ . '/../header.php';
 </style>
 
 
-<!-- ===================== KONTEN ===================== -->
+
+<!-- ===================== TAMPILAN KATALOG PRODUK ===================== -->
 <div class="page-container">
 
     <h2 style="font-size:1.7rem;margin-bottom:.5rem;color:#db2777;font-weight:800;">
         Katalog Produk
     </h2>
 
-    <!-- FORM SEARCH -->
+    <!-- Form pencarian -->
     <form method="get" class="header-search">
-        <input type="text" name="q" placeholder="Cari produk..." value="<?= htmlspecialchars($q) ?>">
+        <input type="text" name="q" placeholder="Cari produk..." 
+               value="<?= htmlspecialchars($q) ?>">
         <button class="btn small" type="submit">Cari</button>
     </form>
 
+
+    <!-- Jika tidak ada produk -->
     <?php if (!$products): ?>
         
         <p class="no-data">Tidak ada produk ditemukan.</p>
 
     <?php else: ?>
 
+        <!-- GRID PRODUK -->
         <div class="grid">
 
             <?php foreach ($products as $p): ?>
 
                 <?php
+                    // Ambil gambar utama / fallback ke default
                     $image = $p['image_url']
                         ? "/glowify/" . $p['image_url']
                         : "/glowify/aset/gambar/default.png";
@@ -218,17 +240,23 @@ include __DIR__ . '/../header.php';
 
                 <div class="card">
 
+                    <!-- Gambar produk → Klik menuju detail -->
                     <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>">
-                        <img src="<?= htmlspecialchars($image); ?>" alt="<?= htmlspecialchars($p['name']); ?>">
+                        <img src="<?= htmlspecialchars($image); ?>" 
+                             alt="<?= htmlspecialchars($p['name']); ?>">
                     </a>
 
                     <div class="content">
 
+                        <!-- Nama produk -->
                         <strong><?= htmlspecialchars($p['name']); ?></strong>
 
+                        <!-- Harga produk -->
                         <div class="price"><?= rupiah($p['base_price']); ?></div>
 
-                        <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>" class="btn small">
+                        <!-- Tombol menuju detail produk -->
+                        <a href="/glowify/user/detail_produk.php?id=<?= $p['id'] ?>" 
+                           class="btn small">
                             Lihat Detail
                         </a>
 
@@ -244,4 +272,5 @@ include __DIR__ . '/../header.php';
 
 </div>
 
+<!-- FOOTER -->
 <?php include __DIR__ . '/../footer.php'; ?>

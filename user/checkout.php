@@ -1,29 +1,46 @@
 <?php
+// Mulai session agar bisa membaca data keranjang
 session_start();
+
+// Import koneksi database
 require_once __DIR__ . '/../inti/koneksi_database.php';
+
+// Import fungsi-fungsi seperti rupiah(), keranjang_item(), dll
 require_once __DIR__ . '/../inti/fungsi.php';
 
-$items    = keranjang_item();
-$subtotal = keranjang_subtotal();
-$ongkir   = $subtotal > 0 ? 15000 : 0;
-$grand    = $subtotal + $ongkir;
 
+// Ambil semua item keranjang dari session
+$items = keranjang_item();
+
+// Hitung subtotal (total harga sebelum ongkir)
+$subtotal = keranjang_subtotal();
+
+// Jika subtotal > 0 maka ongkir = 15000, jika keranjang kosong maka 0
+$ongkir = $subtotal > 0 ? 10000 : 0;
+
+// Hitung total keseluruhan
+$grand = $subtotal + $ongkir;
+
+// Import header (navbar & struktur HTML awal)
 include __DIR__ . '/../header.php';
 ?>
 
 <style>
-/* ===================== Premium Glowify ===================== */
+/* ===================== Premium Glowify Style ===================== */
 
+/* Font umum */
 body {
     font-family: "Inter", system-ui, sans-serif;
 }
 
+/* Container utama halaman checkout */
 .checkout-wrapper {
     max-width: 900px;
     margin: 34px auto;
     padding: 0 16px;
 }
 
+/* Judul halaman */
 .checkout-title {
     font-size: 1.9rem;
     font-weight: 800;
@@ -33,6 +50,7 @@ body {
 
 /* ===================== Table Produk ===================== */
 
+/* Tabel utama checkout */
 .table-produk {
     width: 100%;
     border-collapse: collapse;
@@ -43,6 +61,7 @@ body {
     margin-bottom: 28px;
 }
 
+/* Header tabel */
 .table-produk thead {
     background: #fdf2f8;
 }
@@ -56,12 +75,14 @@ body {
     text-align: left;
 }
 
+/* Isi tabel */
 .table-produk td {
     padding: 14px 16px;
     border-bottom: 1px solid #e5e7eb;
     font-size: .95rem;
 }
 
+/* Lebar kolom */
 .table-produk th:nth-child(1),
 .table-produk td:nth-child(1) { width: 45%; }
 .table-produk th:nth-child(2),
@@ -71,12 +92,14 @@ body {
 .table-produk th:nth-child(4),
 .table-produk td:nth-child(4) { width: 22%; text-align: right; }
 
+/* Hilangkan border terakhir */
 .table-produk tbody tr:last-child td {
     border-bottom: none;
 }
 
 /* ===================== Card Total ===================== */
 
+/* Box informasi total pembayaran */
 .card-total {
     background: #fff0f7;
     border: 1px solid #fbcfe8;
@@ -86,6 +109,7 @@ body {
     margin-bottom: 24px;
 }
 
+/* Baris item total */
 .card-total-item {
     display: flex;
     justify-content: space-between;
@@ -97,6 +121,7 @@ body {
     margin-bottom: 0;
 }
 
+/* Warna label dan value */
 .card-total .label {
     color: #6b7280;
 }
@@ -106,6 +131,7 @@ body {
     color: #4b5563;
 }
 
+/* Tampilan grand total */
 .card-total-grand {
     font-size: 1.25rem;
     font-weight: 800;
@@ -119,12 +145,14 @@ body {
 
 /* ===================== Buttons ===================== */
 
+/* Wrapper tombol */
 .checkout-actions {
     display: flex;
     gap: .9rem;
     margin-top: 10px;
 }
 
+/* Tombol utama */
 .btn-main {
     padding: 12px 22px;
     border: none;
@@ -142,6 +170,7 @@ body {
     transform: translateY(-2px);
 }
 
+/* Tombol kembali */
 .btn-secondary {
     padding: 12px 22px;
     border-radius: 14px;
@@ -158,11 +187,14 @@ body {
 }
 </style>
 
+
 <div class="checkout-wrapper">
 
+    <!-- Judul halaman -->
     <h2 class="checkout-title">Checkout</h2>
 
     <?php if (!$items): ?>
+        <!-- Jika keranjang kosong -->
         <div class="alert-box">
             Keranjang kamu masih kosong.
             <a href="daftar_produk.php" style="color:#db2777;font-weight:700;">Belanja sekarang</a>.
@@ -170,7 +202,7 @@ body {
 
     <?php else: ?>
 
-        <!-- TABLE PRODUK -->
+        <!-- ===================== TABEL PRODUK ===================== -->
         <table class="table-produk">
             <thead>
                 <tr>
@@ -184,16 +216,23 @@ body {
             <tbody>
                 <?php foreach ($items as $it): ?>
                 <tr>
+                    <!-- Nama produk -->
                     <td><?= htmlspecialchars($it['nama']); ?></td>
+
+                    <!-- Jumlah beli -->
                     <td><?= (int)$it['qty']; ?></td>
+
+                    <!-- Harga satuan -->
                     <td><?= rupiah($it['harga']); ?></td>
+
+                    <!-- Subtotal per produk -->
                     <td><?= rupiah($it['harga'] * $it['qty']); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
 
-        <!-- CARD TOTAL PEMBAYARAN -->
+        <!-- ===================== CARD TOTAL PEMBAYARAN ===================== -->
         <div class="card-total">
 
             <div class="card-total-item">
@@ -213,9 +252,12 @@ body {
 
         </div>
 
-        <!-- BUTTON -->
+        <!-- ===================== TOMBOL AKSI ===================== -->
         <form method="post" action="buat_pesanan.php" class="checkout-actions">
+            <!-- Tombol buat pesanan -->
             <button class="btn-main" type="submit">Buat Pesanan</button>
+
+            <!-- Tombol kembali ke keranjang -->
             <a href="keranjang.php" class="btn-secondary">Kembali</a>
         </form>
 
@@ -223,4 +265,5 @@ body {
 
 </div>
 
+<!-- Footer Glowify -->
 <?php include __DIR__ . '/../footer.php'; ?>
