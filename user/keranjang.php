@@ -1,13 +1,18 @@
 <?php
-// Mengimpor sistem autentikasi untuk memastikan user login
+// Mengimpor sistem autentikasi (untuk memastikan session aktif)
 require_once __DIR__ . '/../inti/autentikasi.php';
 
-// Mengimpor fungsi keranjang, fungsi rupiah(), dll
+// Mengimpor fungsi keranjang + rupiah()
 require_once __DIR__ . '/../inti/fungsi.php';
 
+// ============================
+// CEK ROLE ADMIN
+// Admin tidak boleh akses keranjang customer
+// ============================
+if (!empty($_SESSION['user']) &&
+    isset($_SESSION['user']['role']) &&
+    $_SESSION['user']['role'] === 'admin') {
 
-// Jika user adalah admin → tidak boleh akses halaman customer
-if ($_SESSION['user']['role'] === 'admin') {
     include __DIR__ . '/../header.php';
     echo '<div class="alert warning">Anda login sebagai Admin. Halaman ini hanya untuk pelanggan.</div>';
     include __DIR__ . '/../footer.php';
@@ -16,15 +21,14 @@ if ($_SESSION['user']['role'] === 'admin') {
 
 
 /* ============================================================
-   TAMBAH PRODUK KE KERANJANG
-   Dipanggil dari detail_produk.php melalui metode POST
+   TAMBAH PRODUK KE KERANJANG (POST dari detail_produk.php)
 ============================================================ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah') {
 
-    $pid = (int)$_POST['product_id']; // ID produk
-    $qty = max(1, (int)$_POST['qty']); // Minimal qty = 1
+    $pid = (int)($_POST['product_id'] ?? 0);
+    $qty = max(1, (int)($_POST['qty'] ?? 1));
 
-    // Ambil data lengkap produk
+    // Ambil data produk
     $stmt = $pdo->prepare("
         SELECT p.id, p.name, p.base_price,
             (SELECT url FROM product_images 
@@ -36,82 +40,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
     $stmt->execute([$pid]);
     $prod = $stmt->fetch();
 
-    // Jika produk valid → masukkan ke keranjang
     if ($prod) {
         keranjang_tambah(
-            $variant_id   = $pid,          // ID produk dimasukkan sebagai ID varian
-            $qty,                           // Jumlah
-            $price        = $prod['base_price'], // Harga
-            $name         = $prod['name'],       // Nama produk
-            $variant_name = '-'             // Glowify tidak memakai varian
+            $pid,
+            $qty,
+            $prod['base_price'],
+            $prod['name'],
+            '-'
         );
 
-        // Simpan gambar produk ke session keranjang
+        // Tambah gambar produk pada keranjang
         $_SESSION['keranjang'][$pid]['gambar'] = $prod['img'] ?: "aset/uploads/default.png";
     }
 
-    // Setelah menambah → redirect kembali ke keranjang
     header("Location: keranjang.php");
     exit;
 }
 
 
-
 /* ============================================================
-   UPDATE QTY KERANJANG
-   Dipanggil saat pengguna klik tombol "Perbarui"
+   UPDATE JUMLAH PRODUK DALAM KERANJANG
 ============================================================ */
 if (isset($_POST['update'])) {
-
     foreach ($_POST['qty'] ?? [] as $vid => $qty) {
-
         $vid = (int)$vid;
         $qty = (int)$qty;
 
         if ($qty <= 0) {
-            // Jika qty 0 → hapus item dari keranjang
             unset($_SESSION['keranjang'][$vid]);
         } elseif (isset($_SESSION['keranjang'][$vid])) {
-            // Update qty
             $_SESSION['keranjang'][$vid]['qty'] = $qty;
         }
     }
 }
 
 
-
 /* ============================================================
    KOSONGKAN KERANJANG
 ============================================================ */
 if (isset($_POST['kosongkan'])) {
-    $_SESSION['keranjang'] = []; // Hapus seluruh isi keranjang
+    $_SESSION['keranjang'] = [];
 }
 
 
-
 /* ============================================================
-   DATA KERANJANG UNTUK DITAMPILKAN
+   DATA TAMPILAN
 ============================================================ */
-$items    = keranjang_item();     // Ambil semua item di keranjang
-$subtotal = keranjang_subtotal(); // Hitung total harga
+$items    = keranjang_item();
+$subtotal = keranjang_subtotal();
 
 
-
-// Import header
+// HEADER
 include __DIR__ . '/../header.php';
 ?>
 
 
 <!-- ======================= CSS STYLE ======================= -->
 <style>
-/* Container keranjang */
 .keranjang-container {
     max-width: 900px;
     margin: auto;
     padding: 20px;
 }
 
-/* Box item keranjang */
 .keranjang-card {
     display: grid;
     grid-template-columns: 90px 1fr 120px;
@@ -124,7 +115,6 @@ include __DIR__ . '/../header.php';
     border: 1px solid #ffd1e8;
 }
 
-/* Gambar produk */
 .keranjang-img {
     width: 75px;
     height: 75px;
@@ -133,14 +123,12 @@ include __DIR__ . '/../header.php';
     border: 2px solid #ff92c8;
 }
 
-/* Nama produk */
 .keranjang-nama {
     font-size: 18px;
     font-weight: bold;
     color: #d80071;
 }
 
-/* Harga produk */
 .keranjang-harga {
     font-size: 15px;
     font-weight: 600;
@@ -148,7 +136,6 @@ include __DIR__ . '/../header.php';
     margin-top: 2px;
 }
 
-/* Box qty */
 .qty-box {
     display: flex;
     align-items: center;
@@ -156,7 +143,6 @@ include __DIR__ . '/../header.php';
     margin-top: 6px;
 }
 
-/* Tombol + dan - */
 .qty-btn {
     background: #ff6fb0;
     border: none;
@@ -167,7 +153,6 @@ include __DIR__ . '/../header.php';
     cursor: pointer;
 }
 
-/* Input qty */
 .qty-input {
     width: 48px;
     text-align: center;
@@ -176,7 +161,6 @@ include __DIR__ . '/../header.php';
     border-radius: 8px;
 }
 
-/* Subtotal per item */
 .keranjang-subtotal {
     font-size: 17px;
     font-weight: bold;
@@ -184,7 +168,6 @@ include __DIR__ . '/../header.php';
     text-align: right;
 }
 
-/* Total semua item */
 .total-box {
     background: #fff0fa;
     padding: 15px;
@@ -196,7 +179,6 @@ include __DIR__ . '/../header.php';
     border: 1px solid #ffbde4;
 }
 
-/* Tombol Glowify */
 .btn-glowify {
     background: linear-gradient(135deg, #ff62a1, #ff3787);
     color: white !important;
@@ -208,12 +190,10 @@ include __DIR__ . '/../header.php';
     transition: 0.2s;
 }
 
-/* Tombol kosongkan */
 .btn-danger {
     background: #ff477e;
 }
 
-/* Area tombol aksi */
 .action-buttons {
     margin-top: 10px;
     display: flex;
@@ -223,34 +203,27 @@ include __DIR__ . '/../header.php';
 </style>
 
 
-
 <h2>Keranjang Belanja</h2>
 
 <?php if (!$items): ?>
 
-    <!-- Jika keranjang kosong -->
     <p>Keranjang kosong. <a href="daftar_produk.php">Belanja sekarang</a>.</p>
 
 <?php else: ?>
 
-<!-- FORM UPDATE KERANJANG -->
 <form method="post">
 
 <div class="keranjang-container">
 
-    <!-- Perulangan setiap produk di keranjang -->
     <?php foreach ($items as $vid => $it): ?>
     <div class="keranjang-card">
 
-        <!-- Gambar produk -->
         <img src="/glowify/<?= htmlspecialchars($it['gambar']); ?>" class="keranjang-img">
 
-        <!-- Nama + harga + qty -->
         <div>
             <div class="keranjang-nama"><?= htmlspecialchars($it['nama']); ?></div>
             <div class="keranjang-harga"><?= rupiah($it['harga']); ?></div>
 
-            <!-- Input jumlah produk -->
             <div class="qty-box">
                 <button type="button" class="qty-btn" onclick="ubahQty(<?= $vid ?>, -1)">-</button>
 
@@ -265,7 +238,6 @@ include __DIR__ . '/../header.php';
             </div>
         </div>
 
-        <!-- Subtotal -->
         <div class="keranjang-subtotal">
             <?= rupiah($it['harga'] * $it['qty']); ?>
         </div>
@@ -273,12 +245,10 @@ include __DIR__ . '/../header.php';
     </div>
     <?php endforeach; ?>
 
-    <!-- TOTAL KESELURUHAN -->
     <div class="total-box">
         Total: <?= rupiah($subtotal); ?>
     </div>
 
-    <!-- Tombol aksi -->
     <div class="action-buttons">
         <button type="submit" name="update" value="1" class="btn-glowify">Perbarui</button>
         <button type="submit" name="kosongkan" value="1" class="btn-glowify btn-danger">Kosongkan</button>
@@ -289,8 +259,6 @@ include __DIR__ . '/../header.php';
 
 </form>
 
-
-<!-- JS untuk tombol + dan - pada qty -->
 <script>
 function ubahQty(id, val) {
     let box = document.getElementById("qty_" + id);
